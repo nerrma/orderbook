@@ -13,9 +13,16 @@ class Book {
 	public:
 		Book(std::string s) : stock{s} {}
 
+		/* Add an order to the book */
 		int addOrder(Order* order);
+
+		/* Cancel an order */
 		int cancelOrder(Order* order);
+
+		/* Get the depth for a price as a depth object */
 		depth * getDepth(float price);
+
+		/* Get the depths of all prices */
 		std::vector<depth *> getAllDepths();
 };
 
@@ -23,7 +30,10 @@ class Orderbook {
 	private:
 		std::map<std::string, Book> books;
 	public:
-		void addOrder(Order* order);
+		/* Add an order to the correspoding book */
+		int addOrder(Order* order);
+
+		/* Add a stock to the overall orderbook */
 		void addStock(std::string ticker);
 };
 

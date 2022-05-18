@@ -16,7 +16,6 @@ int Book::cancelOrder(Order* order){
 
 	if(!pb)
 		return -1;
-	
 
 	return pb->removeOrder(order);
 }
@@ -40,4 +39,18 @@ std::vector<depth *> Book::getAllDepths(){
 	}
 
 	return res;
+}
+
+int Orderbook::addOrder(Order *order){
+	if(this->books.find(order->getTicker()) == this->books.end())
+		return -1;
+
+	return this->books[order->getTicker()].addOrder(order);
+}
+
+void Orderbook::addStock(std::string ticker){
+	if(this->books.find(ticker) != this->books.end())
+		return;
+
+	this->books[ticker] = Book(ticker);
 }
