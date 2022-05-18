@@ -25,7 +25,7 @@ depth * Book::getDepth(float price){
 	Pricebucket * pb = priceBucketManager.findPrice(price);
 
 	if(!pb)
-		return NULL;
+		return nullptr;
 
 	return new depth{price, pb->sizeBid(), pb->sizeAsk()};
 }
