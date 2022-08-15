@@ -11,6 +11,10 @@ namespace order {
 		side order_side;
 		long long amt;
 		double price;
+
+		[[nodiscard]] auto operator==(order_data const& o) const {
+			return order_side == o.order_side && amt == o.amt && price == o.price;
+		};
 	};
 
 	class order {
@@ -30,6 +34,8 @@ namespace order {
 		[[nodiscard]] auto get_data() const -> order_data {
 			return order_data{side_, amt_, price_};
 		}
+
+		auto operator<=>(const order& o) const = default;
 
 	private:
 		side side_;

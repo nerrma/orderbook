@@ -4,3 +4,5 @@ cxx_library(
 )
 
 target_include_directories(test_main PUBLIC .)
+
+add_subdirectory(order)
