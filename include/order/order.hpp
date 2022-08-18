@@ -28,12 +28,6 @@ namespace order {
 		, amt_{amt}
 		, price_{price} {}
 
-		order(order&& other) noexcept
-		: id_{std::exchange(other.id_, {})}
-		, side_{std::exchange(other.side_, {})}
-		, amt_{std::exchange(other.amt_, {})}
-		, price_{std::exchange(other.price_, {})} {}
-
 		order(order const& other) = default;
 
 		[[nodiscard]] auto get_data() const -> order_data {
@@ -46,6 +40,10 @@ namespace order {
 
 		[[nodiscard]] auto get_price() const -> double {
 			return price_;
+		}
+
+		[[nodiscard]] auto get_amt() const -> uint64_t {
+			return amt_;
 		}
 
 		auto operator<=>(const order& oth) const = default;
