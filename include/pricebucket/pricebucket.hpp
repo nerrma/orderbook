@@ -3,12 +3,15 @@
 
 #include "order/order.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <iostream>
+#include <iterator>
 #include <numeric>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 namespace pricebucket {
 	class pricebucket {
 	public:
@@ -24,9 +27,21 @@ namespace pricebucket {
 			}
 		}
 
+		[[nodiscard]] auto get_data() const -> std::vector<order::order_data> {
+			auto res = std::vector<order::order_data>();
+
+			std::cout << "?\n";
+			std::cout << orders_.size() << "\n";
+			for (auto const& e : orders_) {
+				res.push_back(e.get_data());
+			}
+
+			return res;
+		}
+
 		[[nodiscard]] auto volume() const -> uint64_t {
 			auto res = uint64_t{};
-			for (auto e : orders_) {
+			for (auto const& e : orders_) {
 				res += e.get_amt();
 			}
 
@@ -36,13 +51,93 @@ namespace pricebucket {
 	private:
 		std::deque<order::order> orders_;
 	};
+
 	class pricebucketmanager {
 	public:
+		using data_type = std::vector<order::order_data>;
 		using value_type = pricebucket;
 
-		struct data_type {};
+		class iterator_impl {
+			using map_it = std::unordered_map<double, pricebucket>::iterator;
 
-		using data_type = data_type;
+			using iterator_category = std::forward_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = pricebucket;
+			using reference = value_type&;
+			using pointer = value_type*;
+
+		public:
+			explicit iterator_impl(map_it it)
+			: curr_{it} {}
+
+			auto operator*() const -> reference {
+				return curr_->second;
+			}
+
+			auto operator->() const -> pointer {
+				return &(curr_->second);
+			}
+
+			auto operator++() -> iterator_impl& {
+				curr_++;
+				return *this;
+			}
+
+			auto operator==(iterator_impl const& other) -> bool {
+				return curr_ == other.curr_;
+			}
+
+		private:
+			map_it curr_;
+		};
+
+		class const_iterator_impl {
+			using map_it = std::unordered_map<double, pricebucket>::const_iterator;
+
+			using iterator_category = std::forward_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = pricebucket;
+			using reference = value_type;
+
+		public:
+			explicit const_iterator_impl(map_it it)
+			: curr_{it} {}
+
+			auto operator*() const -> reference {
+				return curr_->second;
+			}
+
+			auto operator++() -> const_iterator_impl& {
+				curr_++;
+				return *this;
+			}
+
+			auto operator==(const_iterator_impl const& other) -> bool {
+				return curr_ == other.curr_;
+			}
+
+		private:
+			map_it curr_;
+		};
+
+		using iterator = iterator_impl;
+		using const_iterator = const_iterator_impl;
+
+		auto begin() -> iterator {
+			return iterator(buckets_.begin());
+		}
+
+		auto end() -> iterator {
+			return iterator(buckets_.end());
+		}
+
+		auto begin() const -> const_iterator {
+			return const_iterator(buckets_.begin());
+		}
+
+		auto end() const -> const_iterator {
+			return const_iterator(buckets_.end());
+		}
 
 		auto find_bucket(double const& level) const -> pricebucket {
 			if (auto bck = buckets_.find(level); bck != buckets_.end()) {
@@ -70,7 +165,7 @@ namespace pricebucket {
 		}
 
 		auto cancel_order(double const& level, order::order const& order) -> bool {
-			if (buckets_.contains(level)) {
+			if (not buckets_.contains(level)) {
 				return false;
 			}
 

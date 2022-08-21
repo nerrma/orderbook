@@ -45,13 +45,13 @@ public:
 		}
 	}
 
-	[[nodiscard]] auto get_book_data() const -> std::vector<typename BucketAlgo::data_type> {
+	[[nodiscard]] auto get_data() const -> std::vector<typename BucketAlgo::data_type> {
 		auto res = std::vector<typename BucketAlgo::data_type>();
 
-		for (auto elem : algo_) {
+		for (auto const& elem : algo_) {
 			res.push_back(elem.get_data());
 		}
-
+		std::cout << "size: " << res.size() << "\n";
 		return res;
 	}
 
@@ -79,7 +79,7 @@ public:
 		return sell_book_.cancel_order(order);
 	}
 
-	auto get_data() const -> data_type {
+	[[nodiscard]] auto get_data() const -> data_type {
 		return std::make_pair(buy_book_.get_data(), sell_book_.get_data());
 	}
 
