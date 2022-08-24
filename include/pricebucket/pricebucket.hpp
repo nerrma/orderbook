@@ -30,8 +30,6 @@ namespace pricebucket {
 		[[nodiscard]] auto get_data() const -> std::vector<order::order_data> {
 			auto res = std::vector<order::order_data>();
 
-			std::cout << "?\n";
-			std::cout << orders_.size() << "\n";
 			for (auto const& e : orders_) {
 				res.push_back(e.get_data());
 			}
@@ -188,7 +186,7 @@ namespace pricebucket {
 		}
 
 		auto get_max() const -> double {
-			return std::min(buckets_.begin(),
+			return std::max(buckets_.begin(),
 			                buckets_.end(),
 			                [](auto const& e1, auto const& e2) { return e1->first > e2->first; })
 			   ->first;

@@ -51,7 +51,6 @@ public:
 		for (auto const& elem : algo_) {
 			res.push_back(elem.get_data());
 		}
-		std::cout << "size: " << res.size() << "\n";
 		return res;
 	}
 
