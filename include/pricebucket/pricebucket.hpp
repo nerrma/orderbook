@@ -9,12 +9,18 @@
 #include <iostream>
 #include <iterator>
 #include <numeric>
+#include <set>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 namespace pricebucket {
 	class pricebucket {
 	public:
+		pricebucket() = default;
+
+		explicit pricebucket(double const& level)
+		: level_{level} {}
+
 		auto add_order(order::order const& order) -> void {
 			if (auto val = std::find(orders_.begin(), orders_.end(), order); val == orders_.end()) {
 				orders_.push_back(order);
@@ -46,8 +52,27 @@ namespace pricebucket {
 			return res;
 		}
 
+		[[nodiscard]] auto get_level() const -> double {
+			return level_;
+		}
+
+		[[nodiscard]] auto top() const -> order::order {
+			return orders_.front();
+		}
+
+		[[nodiscard]] auto empty() const -> bool {
+			return orders_.empty();
+		}
+
+		auto pop() -> void {
+			if (!orders_.empty()) {
+				orders_.pop_front();
+			}
+		}
+
 	private:
 		std::deque<order::order> orders_;
+		double level_;
 	};
 
 	class pricebucketmanager {
@@ -138,18 +163,22 @@ namespace pricebucket {
 		}
 
 		auto find_bucket(double const& level) const -> pricebucket {
-			if (auto bck = buckets_.find(level); bck != buckets_.end()) {
-				return bck->second;
+			if (auto const it = buckets_.find(level); it != buckets_.end()) {
+				return it->second;
 			}
 
 			return {};
+		}
+
+		auto find_bucket(double const& level) -> pricebucket& {
+			return buckets_[level];
 		}
 
 		auto add_level(double const& level) -> bool {
 			if (buckets_.contains(level)) {
 				return false;
 			}
-			buckets_[level] = pricebucket();
+			buckets_[level] = pricebucket(level);
 			return true;
 		}
 
@@ -176,6 +205,21 @@ namespace pricebucket {
 				return 0;
 			}
 			return buckets_.at(level).volume();
+		}
+
+		[[nodiscard]] auto get_closest(double const& level) const -> double {
+			std::set<double> levels;
+			std::transform(buckets_.begin(),
+			               buckets_.end(),
+			               std::inserter(levels, levels.begin()),
+			               [](auto const& entry) { return entry.first; });
+
+			auto it = levels.lower_bound(level);
+			if (it == levels.end()) {
+				return -1;
+			}
+
+			return *it;
 		}
 
 		auto get_min() const -> double {

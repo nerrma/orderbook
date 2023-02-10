@@ -20,7 +20,15 @@ public:
 		return false;
 	}
 
-	auto get_bucket(double const& level) -> typename BucketAlgo::value_type {
+	auto begin() -> typename BucketAlgo::iterator {
+		return algo_.begin();
+	}
+
+	auto end() -> typename BucketAlgo::iterator {
+		return algo_.end();
+	}
+
+	auto get_bucket(double const& level) -> typename BucketAlgo::value_type& {
 		return algo_.find_bucket(level);
 	}
 
@@ -30,6 +38,10 @@ public:
 
 	auto cancel_order(order::order const& order) -> bool {
 		return algo_.cancel_order(order.get_price(), order);
+	}
+
+	[[nodiscard]] auto get_closest(double const& level) const -> double {
+		return algo_.get_closest(level);
 	}
 
 	[[nodiscard]] auto get_volume(double const& price) const -> uint64_t {
@@ -87,6 +99,42 @@ public:
 			return buy_book_.get_volume(price);
 		}
 		return sell_book_.get_volume(price);
+	}
+
+	auto match() -> void {
+		for (auto& bucket : buy_book_) {
+			// if (sell_book_.best_price() > bucket.get_level()) {
+			//	continue;
+			// }
+
+			auto cur_order = bucket.top();
+			auto rem_units = cur_order.get_amt();
+
+			auto level = sell_book_.get_closest(bucket.get_level());
+			if (level == -1) {
+				break;
+			}
+
+			auto& sell_bucket = sell_book_.get_bucket(level);
+			while (rem_units > 0 && !sell_bucket.empty()) {
+				auto sell_order = sell_bucket.top();
+				if (sell_order.get_amt() > rem_units) {
+					auto partial_order =
+					   order::order(sell_order, sell_order.get_amt() - rem_units, std::time(nullptr));
+					sell_bucket.add_order(partial_order);
+				}
+
+				rem_units -= std::min(rem_units, sell_order.get_amt());
+				sell_bucket.pop();
+			}
+
+			bucket.pop();
+
+			if (rem_units) {
+				auto partial_order = order::order(cur_order, rem_units, std::time(nullptr));
+				bucket.add_order(partial_order);
+			}
+		}
 	}
 
 private:
