@@ -103,19 +103,10 @@ public:
 
 	auto match() -> void {
 		for (auto& bucket : buy_book_) {
-			// if (sell_book_.best_price() > bucket.get_level()) {
-			//	continue;
-			// }
-
 			auto cur_order = bucket.top();
 			auto rem_units = cur_order.get_amt();
 
-			auto level = sell_book_.get_closest(bucket.get_level());
-			if (level == -1) {
-				break;
-			}
-
-			auto& sell_bucket = sell_book_.get_bucket(level);
+			auto& sell_bucket = sell_book_.get_bucket(bucket.get_level());
 			while (rem_units > 0 && !sell_bucket.empty()) {
 				auto sell_order = sell_bucket.top();
 				if (sell_order.get_amt() > rem_units) {
